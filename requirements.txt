@@ -1,4 +1,4 @@
 scikit-image
 imgaug
 opencv-python
-efficientnet-python
+efficientnet-pytorch
