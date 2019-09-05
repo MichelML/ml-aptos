@@ -13080,7 +13080,8 @@ div#notebook {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="n">package_dir</span> <span class="o">=</span> <span class="s2">&quot;../input/pretrained-models/pretrained-models/pretrained-models.pytorch-master/&quot;</span>
+<span class="c1"># package_dir = &quot;../input/aptos-models&quot;</span>
+<span class="n">package_dir</span> <span class="o">=</span> <span class="s1">&#39;./&#39;</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">package_dir</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -13092,7 +13093,6 @@ div#notebook {
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="k">import</span> <span class="n">transforms</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pretrainedmodels</span>
 
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">)</span>
 <span class="n">ImageFile</span><span class="o">.</span><span class="n">LOAD_TRUNCATED_IMAGES</span> <span class="o">=</span> <span class="kc">True</span>
@@ -13117,7 +13117,7 @@ div#notebook {
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-        <span class="n">img_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;../input/aptos2019-blindness-detection/test_images&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;id_code&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="n">img_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;/storage/aptos2019-blindness-detection/test_images&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;id_code&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
         <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_name</span><span class="p">)</span>
         <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">image</span><span class="p">}</span>
@@ -13133,19 +13133,10 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">pretrainedmodels</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;resnet101&#39;</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-<span class="n">model</span><span class="o">.</span><span class="n">avg_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">last_linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">track_running_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.25</span><span class="p">),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">track_running_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
-                          <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                         <span class="p">)</span>
-<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;../input/mmmodel/model.bin&quot;</span><span class="p">))</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">resnet101</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">num_features</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{package_dir}</span><span class="s1">/resnet101.pth&#39;</span><span class="p">))</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 </pre></div>
 
@@ -13184,7 +13175,7 @@ div#notebook {
 <pre>ResNet(
   (conv1): Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
   (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-  (relu): ReLU(inplace)
+  (relu): ReLU(inplace=True)
   (maxpool): MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
   (layer1): Sequential(
     (0): Bottleneck(
@@ -13194,7 +13185,7 @@ div#notebook {
       (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
       (downsample): Sequential(
         (0): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
         (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -13207,7 +13198,7 @@ div#notebook {
       (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (2): Bottleneck(
       (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13216,7 +13207,7 @@ div#notebook {
       (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
   )
   (layer2): Sequential(
@@ -13227,7 +13218,7 @@ div#notebook {
       (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
       (downsample): Sequential(
         (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
         (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -13240,7 +13231,7 @@ div#notebook {
       (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (2): Bottleneck(
       (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13249,7 +13240,7 @@ div#notebook {
       (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (3): Bottleneck(
       (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13258,7 +13249,7 @@ div#notebook {
       (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
   )
   (layer3): Sequential(
@@ -13269,7 +13260,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
       (downsample): Sequential(
         (0): Conv2d(512, 1024, kernel_size=(1, 1), stride=(2, 2), bias=False)
         (1): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -13282,7 +13273,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (2): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13291,7 +13282,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (3): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13300,7 +13291,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (4): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13309,7 +13300,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (5): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13318,7 +13309,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (6): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13327,7 +13318,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (7): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13336,7 +13327,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (8): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13345,7 +13336,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (9): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13354,7 +13345,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (10): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13363,7 +13354,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (11): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13372,7 +13363,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (12): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13381,7 +13372,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (13): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13390,7 +13381,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (14): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13399,7 +13390,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (15): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13408,7 +13399,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (16): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13417,7 +13408,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (17): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13426,7 +13417,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (18): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13435,7 +13426,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (19): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13444,7 +13435,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (20): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13453,7 +13444,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (21): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13462,7 +13453,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (22): Bottleneck(
       (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13471,7 +13462,7 @@ div#notebook {
       (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
   )
   (layer4): Sequential(
@@ -13482,7 +13473,7 @@ div#notebook {
       (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
       (downsample): Sequential(
         (0): Conv2d(1024, 2048, kernel_size=(1, 1), stride=(2, 2), bias=False)
         (1): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
@@ -13495,7 +13486,7 @@ div#notebook {
       (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
     (2): Bottleneck(
       (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
@@ -13504,21 +13495,11 @@ div#notebook {
       (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
       (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (relu): ReLU(inplace)
+      (relu): ReLU(inplace=True)
     )
   )
   (avgpool): AdaptiveAvgPool2d(output_size=(1, 1))
-  (fc): None
-  (last_linear): Sequential(
-    (0): BatchNorm1d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (1): Dropout(p=0.25)
-    (2): Linear(in_features=2048, out_features=2048, bias=True)
-    (3): ReLU()
-    (4): BatchNorm1d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (5): Dropout(p=0.5)
-    (6): Linear(in_features=2048, out_features=1, bias=True)
-  )
-  (avg_pool): AdaptiveAvgPool2d(output_size=1)
+  (fc): Linear(in_features=2048, out_features=1, bias=True)
 )</pre>
 </div>
 
@@ -13539,7 +13520,7 @@ div#notebook {
     <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
     <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
 <span class="p">])</span>
-<span class="n">test_dataset</span> <span class="o">=</span> <span class="n">RetinopathyDatasetTest</span><span class="p">(</span><span class="n">csv_file</span><span class="o">=</span><span class="s1">&#39;../input/aptos2019-blindness-detection/sample_submission.csv&#39;</span><span class="p">,</span>
+<span class="n">test_dataset</span> <span class="o">=</span> <span class="n">RetinopathyDatasetTest</span><span class="p">(</span><span class="n">csv_file</span><span class="o">=</span><span class="s1">&#39;/storage/aptos2019-blindness-detection/sample_submission.csv&#39;</span><span class="p">,</span>
                                       <span class="n">transform</span><span class="o">=</span><span class="n">test_transform</span><span class="p">)</span>
 </pre></div>
 
@@ -13557,16 +13538,22 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds1</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">test_preds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
+        <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+        <span class="n">test_preds</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">preds</span> <span class="o">+</span> <span class="p">[</span><span class="n">test_preds</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -13583,8 +13570,13 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:13&lt;00:00,  2.04s/it]
-</pre>
+<pre>100%|██████████| 1928/1928 [00:44&lt;00:00, 43.32it/s]
+100%|██████████| 1928/1928 [00:43&lt;00:00, 44.00it/s]
+100%|██████████| 1928/1928 [00:43&lt;00:00, 43.91it/s]
+100%|██████████| 1928/1928 [00:44&lt;00:00, 43.49it/s]
+100%|██████████| 1928/1928 [00:43&lt;00:00, 43.84it/s]
+100%|██████████| 1928/1928 [00:44&lt;00:00, 43.76it/s]
+ 96%|█████████▌| 1853/1928 [00:42&lt;00:01, 44.69it/s]</pre>
 </div>
 </div>
 
@@ -13594,344 +13586,13 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds2</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [00:55&lt;00:00,  1.39it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds3</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:13&lt;00:00,  1.70it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds4</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:05&lt;00:00,  1.02s/it]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds5</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds5</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:05&lt;00:00,  1.24it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds6</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds6</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:22&lt;00:00,  1.29it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[12]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds7</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds7</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:15&lt;00:00,  1.44it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds8</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds8</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [00:55&lt;00:00,  1.61it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds9</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds9</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:09&lt;00:00,  1.05it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">test_preds10</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">tk0</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">test_data_loader</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tk0</span><span class="p">):</span>
-    <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_batch</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="n">test_preds10</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">32</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">32</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 61/61 [01:33&lt;00:00,  1.18it/s]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_preds</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_preds1</span> <span class="o">+</span> <span class="n">test_preds2</span> <span class="o">+</span> <span class="n">test_preds3</span> <span class="o">+</span> <span class="n">test_preds4</span> <span class="o">+</span> <span class="n">test_preds5</span>
-             <span class="o">+</span> <span class="n">test_preds6</span> <span class="o">+</span> <span class="n">test_preds7</span> <span class="o">+</span> <span class="n">test_preds8</span> <span class="o">+</span> <span class="n">test_preds9</span> <span class="o">+</span> <span class="n">test_preds10</span><span class="p">)</span> <span class="o">/</span> <span class="mf">10.0</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_preds</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">test_pred</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="n">test_preds</span> <span class="o">=</span> <span class="n">test_preds</span> <span class="o">+</span> <span class="n">test_pred</span>
+<span class="n">test_preds</span> <span class="o">=</span> <span class="n">test_preds</span> <span class="o">/</span> <span class="mi">10</span>
 </pre></div>
 
     </div>
@@ -13941,7 +13602,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">coef</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">]</span>
@@ -13959,7 +13620,7 @@ div#notebook {
         <span class="n">test_preds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
 
 
-<span class="n">sample</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;../input/aptos2019-blindness-detection/sample_submission.csv&quot;</span><span class="p">)</span>
+<span class="n">sample</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;/storage/aptos2019-blindness-detection/sample_submission.csv&quot;</span><span class="p">)</span>
 <span class="n">sample</span><span class="o">.</span><span class="n">diagnosis</span> <span class="o">=</span> <span class="n">test_preds</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 <span class="n">sample</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;submission.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
@@ -13971,412 +13632,10 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">sample</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt output_prompt">Out[18]:</div>
-
-
-
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>id_code</th>
-      <th>diagnosis</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>0005cfc8afb6</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>003f0afdcd15</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>006efc72b638</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>00836aaacf06</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>009245722fa4</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>009c019a7309</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>010d915e229a</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>0111b949947e</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>01499815e469</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>0167076e7089</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>01c31b10ab99</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>01c5ba195207</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td>01e4d86b3a30</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>020921b796d5</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>020f6983114d</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>021c207614d6</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>0229c0a80d42</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>024d0a225db1</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>0268f4382c67</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>0299d97f31f7</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>03042a663e54</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>21</th>
-      <td>030e06ddbb04</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>22</th>
-      <td>033cdbbbdfaa</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>23</th>
-      <td>03be80919be4</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>24</th>
-      <td>03eaa4eef484</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>25</th>
-      <td>0434995d0654</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>26</th>
-      <td>04a0773c71fb</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>27</th>
-      <td>04e1b77ef107</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>28</th>
-      <td>051d9d12a6ee</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>29</th>
-      <td>052e00f47cfa</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>1898</th>
-      <td>fc66648f758e</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1899</th>
-      <td>fc67df1e574e</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1900</th>
-      <td>fc6c9d0efe53</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1901</th>
-      <td>fc79feb5deed</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1902</th>
-      <td>fcbc1f4b5342</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1903</th>
-      <td>fcd166e6e4b5</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1904</th>
-      <td>fcea00df9f33</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1905</th>
-      <td>fd2978398705</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1906</th>
-      <td>fd2d58c6cd45</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1907</th>
-      <td>fd4d81b43e84</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>1908</th>
-      <td>fd7cc592106e</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1909</th>
-      <td>fd8e6b0b2e45</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1910</th>
-      <td>fda8612fcc8c</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>1911</th>
-      <td>fdde61dd1bde</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1912</th>
-      <td>fde8778182af</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1913</th>
-      <td>fe0a340c4477</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1914</th>
-      <td>fe190d618acf</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1915</th>
-      <td>fe1d2f703efc</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1916</th>
-      <td>fe5618ad2460</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1917</th>
-      <td>fe57ff56618e</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1918</th>
-      <td>fe84ad1df04b</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1919</th>
-      <td>fe920e47b72d</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1920</th>
-      <td>fed9d587f158</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1921</th>
-      <td>fee5bd042c3b</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1922</th>
-      <td>fef8e645d030</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1923</th>
-      <td>ff2fd94448de</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1924</th>
-      <td>ff4c945d9b17</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>1925</th>
-      <td>ff64897ac0d8</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1926</th>
-      <td>ffa73465b705</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>1927</th>
-      <td>ffdc2152d455</td>
-      <td>1</td>
-    </tr>
-  </tbody>
-</table>
-<p>1928 rows × 2 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_preds4</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt output_prompt">Out[19]:</div>
-
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>array([[1.57504225],
-       [2.50079846],
-       [2.19846797],
-       ...,
-       [2.91339278],
-       [2.87249327],
-       [0.90023506]])</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">sample</span>
 </pre></div>
 
     </div>

@@ -1,0 +1,2 @@
+to convert from opencv to PIL image (will be useful for testing):
+https://stackoverflow.com/a/43234001
