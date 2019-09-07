@@ -2,35 +2,12 @@
 <html>
 <head><meta charset="utf-8" />
 
-<title>training</title>
+<title>smaller-ds</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
-<script>
-(function() {
-  function addWidgetsRenderer() {
-    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-    var scriptElement = document.createElement('script');
-    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-    var widgetState;
 
-    // Fallback for older version:
-    try {
-      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        widgetRendererSrc = 'https://unpkg.com/jupyter-js-widgets@*/dist/embed.js';
-      }
-    } catch(e) {}
-
-    scriptElement.src = widgetRendererSrc;
-    document.body.appendChild(scriptElement);
-  }
-
-  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
-}());
-</script>
 
 <style type="text/css">
     /*!
@@ -13097,399 +13074,68 @@ div#notebook {
   <div tabindex="-1" id="notebook" class="border-box-sizing">
     <div class="container" id="notebook-container">
 
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>we had 140000 images approximately for our final dataset based on <a href="https://arxiv.org/pdf/1812.10595.pdf">https://arxiv.org/pdf/1812.10595.pdf</a>. We'll try to make it smaller.</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This Python 3 environment comes with many helpful analytics libraries installed</span>
+<span class="c1"># It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python</span>
+<span class="c1"># For example, here&#39;s several helpful packages to load in </span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> <span class="c1"># linear algebra</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span> <span class="c1"># data processing, CSV file I/O (e.g. pd.read_csv)</span>
+
+
+<span class="c1"># Input data files are available in the &quot;../input/&quot; directory.</span>
+<span class="c1"># For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory</span>
+
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;/storage&quot;</span><span class="p">))</span>
+
+<span class="c1"># Any results you write to the current directory are saved as output.</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Pool</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">re</span>
-
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
-
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">torch.utils.data</span> <span class="k">as</span> <span class="nn">D</span>
-<span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="k">import</span> <span class="n">ExponentialLR</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="k">import</span> <span class="n">Variable</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">skimage.io</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="k">import</span> <span class="n">resize</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">ndimage</span>
+<span class="kn">from</span> <span class="nn">imgaug</span> <span class="k">import</span> <span class="n">augmenters</span> <span class="k">as</span> <span class="n">iaa</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">PIL</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageOps</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">class_weight</span><span class="p">,</span> <span class="n">shuffle</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">fbeta_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">imageio</span>
 
-<span class="kn">from</span> <span class="nn">torchvision</span> <span class="k">import</span> <span class="n">transforms</span>
+<span class="kn">from</span> <span class="nn">torchvision.transforms</span> <span class="k">import</span> <span class="n">transforms</span>
 
-<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="k">import</span> <span class="n">Events</span><span class="p">,</span> <span class="n">create_supervised_evaluator</span><span class="p">,</span> <span class="n">create_supervised_trainer</span>
-<span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="k">import</span> <span class="n">Loss</span><span class="p">,</span> <span class="n">Accuracy</span>
-<span class="kn">from</span> <span class="nn">ignite.contrib.handlers.tqdm_logger</span> <span class="k">import</span> <span class="n">ProgressBar</span>
-<span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="k">import</span>  <span class="n">EarlyStopping</span><span class="p">,</span> <span class="n">ModelCheckpoint</span>
-<span class="kn">from</span> <span class="nn">ignite.contrib.handlers</span> <span class="k">import</span> <span class="n">LinearCyclicalScheduler</span><span class="p">,</span> <span class="n">CosineAnnealingScheduler</span>
-
-<span class="kn">import</span> <span class="nn">random</span>
-
-<span class="kn">from</span> <span class="nn">loader</span> <span class="k">import</span> <span class="n">ImageDS</span>
-
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm_notebook</span>
-
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">StratifiedShuffleSplit</span>
-
-<span class="kn">from</span> <span class="nn">efficientnet_pytorch</span> <span class="k">import</span> <span class="n">EfficientNet</span><span class="p">,</span> <span class="n">utils</span> <span class="k">as</span> <span class="n">enet_utils</span>
+<span class="n">WORKERS</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">CHANNEL</span> <span class="o">=</span> <span class="mi">3</span>
 
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+<span class="n">IMG_SIZE</span> <span class="o">=</span> <span class="mi">512</span>
+<span class="n">NUM_CLASSES</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">SEED</span> <span class="o">=</span> <span class="mi">77</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Load-data">Load data<a class="anchor-link" href="#Load-data">&#182;</a></h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptosplus/trainLabels_aug.csv&#39;</span><span class="p">)</span>
-<span class="n">df_test</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptos2019-blindness-detection/test.csv&#39;</span><span class="p">)</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">df_train</span><span class="p">[[</span><span class="s1">&#39;id_code&#39;</span><span class="p">,</span> <span class="s1">&#39;ds&#39;</span><span class="p">]]</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">df_train</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span>
-
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pre_train_x</span><span class="p">,</span> <span class="n">valid_x</span><span class="p">,</span> <span class="n">pre_train_y</span><span class="p">,</span> <span class="n">valid_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.008</span><span class="p">,</span>
-                                                      <span class="n">stratify</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-
-
-<span class="n">train_x</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
-                                                      <span class="n">stratify</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-
-<span class="n">train_y</span><span class="o">.</span><span class="n">hist</span><span class="p">()</span>
-<span class="n">valid_y</span><span class="o">.</span><span class="n">hist</span><span class="p">()</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt output_prompt">Out[3]:</div>
-
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x7f146f2f8a20&gt;</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">valid_labels_count</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">valid_y</span><span class="p">:</span>
-    <span class="n">valid_labels_count</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
-
-<span class="n">valid_labels_count</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt output_prompt">Out[4]:</div>
-
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>Counter({4: 209, 2: 252, 0: 221, 1: 247, 3: 222})</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">train_labels_count</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train_y</span><span class="p">:</span>
-    <span class="n">train_labels_count</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
-
-<span class="n">train_labels_count</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt output_prompt">Out[5]:</div>
-
-
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>Counter({0: 5523, 2: 6291, 4: 5216, 1: 6188, 3: 5543})</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span>
-<span class="n">model_name</span> <span class="o">=</span> <span class="s1">&#39;efficientnet-b1&#39;</span>
-<span class="n">num_classes</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># pytorch training dataset &amp; loader</span>
-<span class="n">ds</span> <span class="o">=</span> <span class="n">ImageDS</span><span class="p">(</span><span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">)</span>
-<span class="n">loader</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-
-<span class="c1"># pytorch cross-validation dataset &amp; loader</span>
-<span class="n">ds_val</span> <span class="o">=</span> <span class="n">ImageDS</span><span class="p">(</span><span class="n">valid_x</span><span class="p">,</span> <span class="n">valid_y</span><span class="p">)</span>
-<span class="n">val_loader</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">ds_val</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Model">Model<a class="anchor-link" href="#Model">&#182;</a></h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">EfficientNet</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">in_features</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_fc</span><span class="o">.</span><span class="n">in_features</span>
-<span class="n">model</span><span class="o">.</span><span class="n">_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
-<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">10e-4</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
-
-<span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">Loss</span><span class="p">(</span><span class="n">criterion</span><span class="p">)</span>
-<span class="p">}</span>
-
-<span class="n">trainer</span> <span class="o">=</span> <span class="n">create_supervised_trainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">criterion</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
-<span class="n">val_evaluator</span> <span class="o">=</span> <span class="n">create_supervised_evaluator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">adjust_learning_rate</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
-    <span class="n">lr</span> <span class="o">=</span> <span class="mf">10e-4</span>
-
-    <span class="k">if</span> <span class="n">epoch</span> <span class="o">&lt;</span> <span class="mi">80</span><span class="p">:</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="mf">10e-4</span>
-    <span class="k">elif</span> <span class="n">epoch</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="mf">10e-5</span>
-    <span class="k">elif</span> <span class="n">epoch</span> <span class="o">&lt;</span> <span class="mi">190</span><span class="p">:</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="mf">50e-6</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="mf">10e-6</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Learning rate of epoch {epoch + 1}: </span><span class="si">{lr}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
-        <span class="n">param_group</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lr</span>
-
-<span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">update_lr_scheduler</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-    <span class="n">adjust_learning_rate</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">)</span>
-    <span class="n">lr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;lr&#39;</span><span class="p">])</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[12]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">get_saved_model_path</span><span class="p">(</span><span class="n">epoch</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;models/Model_</span><span class="si">{model_name}</span><span class="s1">_</span><span class="si">{epoch}</span><span class="s1">.pth&#39;</span>
-
-<span class="n">best_loss</span> <span class="o">=</span> <span class="mf">100.</span>
-<span class="n">best_epoch</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">best_epoch_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-
-<span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">save_best_epoch_only</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-    <span class="n">epoch</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span>
-
-    <span class="k">global</span> <span class="n">best_loss</span>
-    <span class="k">global</span> <span class="n">best_epoch</span>
-    <span class="k">global</span> <span class="n">best_epoch_file</span>
-    <span class="n">best_loss</span> <span class="o">=</span> <span class="mf">0.</span> <span class="k">if</span> <span class="n">epoch</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">best_loss</span>
-    <span class="n">best_epoch</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">epoch</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">best_epoch</span>
-    <span class="n">best_epoch_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">epoch</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">best_epoch_file</span>
-
-    <span class="n">metrics</span> <span class="o">=</span> <span class="n">val_evaluator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span><span class="o">.</span><span class="n">metrics</span>
-
-    <span class="k">if</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">best_loss</span><span class="p">:</span>
-        <span class="n">prev_best_epoch_file</span> <span class="o">=</span> <span class="n">get_saved_model_path</span><span class="p">(</span><span class="n">best_epoch</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">prev_best_epoch_file</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">prev_best_epoch_file</span><span class="p">)</span>
-            
-        <span class="n">best_loss</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
-        <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">epoch</span>
-        <span class="n">best_epoch_file</span> <span class="o">=</span> <span class="n">get_saved_model_path</span><span class="p">(</span><span class="n">best_epoch</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Epoch: </span><span class="si">{best_epoch}</span><span class="s1"> - New best loss! Loss: </span><span class="si">{best_loss}</span><span class="se">\n\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">best_epoch_file</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">CosineAnnealingScheduler</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="s1">&#39;lr&#39;</span><span class="p">,</span> <span class="mf">10e-4</span><span class="p">,</span> <span class="mf">10e-6</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">loader</span><span class="p">))</span>
-<span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_STARTED</span><span class="p">,</span> <span class="n">scheduler</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pbar</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">bar_format</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-<span class="n">pbar</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">})</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Training started&#39;</span><span class="p">)</span>
-<span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+<span class="n">TRAIN_NUM</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># use 1000 when you just want to explore new idea, use -1 for full train</span>
 </pre></div>
 
     </div>
@@ -13506,120 +13152,731 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Training started
+<pre>[&#39;aptosplus.zip&#39;, &#39;trainLabels_aug.csv&#39;, &#39;retinopathy-train-2015&#39;, &#39;.ipynb_checkpoints&#39;, &#39;lost+found&#39;, &#39;aptosplus&#39;, &#39;diabetic-retinopathy-resized&#39;, &#39;aptos2019-blindness-detection&#39;, &#39;resnet101.pth&#39;]
 </pre>
 </div>
 </div>
 
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_train_aug</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptosplus/trainLabels_aug.csv&#39;</span><span class="p">)</span>
+<span class="n">df_train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptosplus/trainLabels.csv&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_aptos</span> <span class="o">=</span> <span class="n">df_train</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_train</span><span class="p">[</span><span class="s1">&#39;ds&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;aptos&#39;</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_aptos</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[4]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>id_code</th>
+      <th>diagnosis</th>
+      <th>ds</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>3657</th>
+      <td>ffa47f6a7bf4</td>
+      <td>2</td>
+      <td>aptos</td>
+    </tr>
+    <tr>
+      <th>3658</th>
+      <td>ffc04fed30e6</td>
+      <td>0</td>
+      <td>aptos</td>
+    </tr>
+    <tr>
+      <th>3659</th>
+      <td>ffcf7b45f213</td>
+      <td>2</td>
+      <td>aptos</td>
+    </tr>
+    <tr>
+      <th>3660</th>
+      <td>ffd97f8cd5aa</td>
+      <td>0</td>
+      <td>aptos</td>
+    </tr>
+    <tr>
+      <th>3661</th>
+      <td>ffec9a18a3ce</td>
+      <td>2</td>
+      <td>aptos</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_eyepacs</span> <span class="o">=</span> <span class="n">df_train</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_train</span><span class="p">[</span><span class="s1">&#39;ds&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;eyepacs&#39;</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_eyepacs</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[6]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>id_code</th>
+      <th>diagnosis</th>
+      <th>ds</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>38783</th>
+      <td>44347_right</td>
+      <td>0</td>
+      <td>eyepacs</td>
+    </tr>
+    <tr>
+      <th>38784</th>
+      <td>44348_left</td>
+      <td>0</td>
+      <td>eyepacs</td>
+    </tr>
+    <tr>
+      <th>38785</th>
+      <td>44348_right</td>
+      <td>0</td>
+      <td>eyepacs</td>
+    </tr>
+    <tr>
+      <th>38786</th>
+      <td>44349_left</td>
+      <td>0</td>
+      <td>eyepacs</td>
+    </tr>
+    <tr>
+      <th>38787</th>
+      <td>44349_right</td>
+      <td>1</td>
+      <td>eyepacs</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_train</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s1">&#39;count&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[7]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th>id_code</th>
+      <th>ds</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>count</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>diagnosis</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>27615</td>
+      <td>27615</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2813</td>
+      <td>2813</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>6291</td>
+      <td>6291</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1066</td>
+      <td>1066</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1003</td>
+      <td>1003</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_aptos</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s1">&#39;count&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[8]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th>id_code</th>
+      <th>ds</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>count</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>diagnosis</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1805</td>
+      <td>1805</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>370</td>
+      <td>370</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>999</td>
+      <td>999</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>193</td>
+      <td>193</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>295</td>
+      <td>295</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_eyepacs</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s1">&#39;count&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[9]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th>id_code</th>
+      <th>ds</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>count</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>diagnosis</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>25810</td>
+      <td>25810</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2443</td>
+      <td>2443</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>5292</td>
+      <td>5292</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>873</td>
+      <td>873</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>708</td>
+      <td>708</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We want:</p>
+<ul>
+<li>All the images from aptos</li>
+<li>In eyepacs:<ul>
+<li>3200 images for 0 (done)</li>
+<li>all images for a total of 2813 images</li>
+<li>4000 images (done)</li>
+<li>all images for a total of 1000 images</li>
+<li>all images for a total of 1000 images</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_final</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span>
+    <span class="n">df_aptos</span><span class="p">,</span>
+    <span class="n">df_eyepacs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_eyepacs</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_eyepacs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_eyepacs</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">df_eyepacs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_eyepacs</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_eyepacs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_eyepacs</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="n">df_eyepacs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_eyepacs</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">]</span>
+    <span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_final</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
 <div class="output_area">
 
     <div class="prompt"></div>
 
 
-
-
-
- 
- 
-<div id="ed2df773-8757-46ea-aa8f-d3ae340b097e"></div>
-<div class="output_subarea output_widget_view ">
-<script type="text/javascript">
-var element = $('#ed2df773-8757-46ea-aa8f-d3ae340b097e');
-</script>
-<script type="application/vnd.jupyter.widget-view+json">
-{"version_major": 2, "model_id": "215613e03e384c5ea7622769e2b8b72d", "version_minor": 0}
-</script>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>14886
+</pre>
+</div>
 </div>
 
 </div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In the augmented images, we need to take:</p>
+<ul>
+<li>2200 images for 1</li>
+<li>4000 images for 3</li>
+<li>4000 images for 4</li>
+</ul>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_train_aug</span> <span class="o">=</span> <span class="n">df_train_aug</span><span class="p">[</span><span class="n">df_train_aug</span><span class="p">[</span><span class="s1">&#39;id_code&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;_a&#39;</span><span class="p">)]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_final</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span>
+    <span class="n">df_final</span><span class="p">,</span>
+    <span class="n">df_train_aug</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_train_aug</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">2200</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_train_aug</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_train_aug</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_train_aug</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_train_aug</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_final</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
 
 <div class="output_area">
 
     <div class="prompt"></div>
 
 
-<div class="output_subarea output_text output_error">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">KeyboardInterrupt</span>                         Traceback (most recent call last)
-<span class="ansi-green-fg">&lt;ipython-input-15-601f2540af58&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">      1</span> print<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;Training started&#39;</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">----&gt; 2</span><span class="ansi-red-fg"> </span>trainer<span class="ansi-blue-fg">.</span>run<span class="ansi-blue-fg">(</span>loader<span class="ansi-blue-fg">,</span> max_epochs<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">150</span><span class="ansi-blue-fg">)</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">run</span><span class="ansi-blue-fg">(self, data, max_epochs)</span>
-<span class="ansi-green-intense-fg ansi-bold">    357</span>         <span class="ansi-green-fg">except</span> BaseException <span class="ansi-green-fg">as</span> e<span class="ansi-blue-fg">:</span>
-<span class="ansi-green-intense-fg ansi-bold">    358</span>             self<span class="ansi-blue-fg">.</span>_logger<span class="ansi-blue-fg">.</span>error<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;Engine run is terminating due to exception: %s.&#34;</span><span class="ansi-blue-fg">,</span> str<span class="ansi-blue-fg">(</span>e<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">--&gt; 359</span><span class="ansi-red-fg">             </span>self<span class="ansi-blue-fg">.</span>_handle_exception<span class="ansi-blue-fg">(</span>e<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    360</span> 
-<span class="ansi-green-intense-fg ansi-bold">    361</span>         <span class="ansi-green-fg">return</span> self<span class="ansi-blue-fg">.</span>state
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">_handle_exception</span><span class="ansi-blue-fg">(self, e)</span>
-<span class="ansi-green-intense-fg ansi-bold">    322</span>             self<span class="ansi-blue-fg">.</span>_fire_event<span class="ansi-blue-fg">(</span>Events<span class="ansi-blue-fg">.</span>EXCEPTION_RAISED<span class="ansi-blue-fg">,</span> e<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    323</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-fg">--&gt; 324</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">raise</span> e
-<span class="ansi-green-intense-fg ansi-bold">    325</span> 
-<span class="ansi-green-intense-fg ansi-bold">    326</span>     <span class="ansi-green-fg">def</span> run<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> data<span class="ansi-blue-fg">,</span> max_epochs<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">run</span><span class="ansi-blue-fg">(self, data, max_epochs)</span>
-<span class="ansi-green-intense-fg ansi-bold">    344</span>                 self<span class="ansi-blue-fg">.</span>state<span class="ansi-blue-fg">.</span>epoch <span class="ansi-blue-fg">+=</span> <span class="ansi-cyan-fg">1</span>
-<span class="ansi-green-intense-fg ansi-bold">    345</span>                 self<span class="ansi-blue-fg">.</span>_fire_event<span class="ansi-blue-fg">(</span>Events<span class="ansi-blue-fg">.</span>EPOCH_STARTED<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">--&gt; 346</span><span class="ansi-red-fg">                 </span>hours<span class="ansi-blue-fg">,</span> mins<span class="ansi-blue-fg">,</span> secs <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>_run_once_on_dataset<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    347</span>                 self<span class="ansi-blue-fg">.</span>_logger<span class="ansi-blue-fg">.</span>info<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;Epoch[%s] Complete. Time taken: %02d:%02d:%02d&#34;</span><span class="ansi-blue-fg">,</span> self<span class="ansi-blue-fg">.</span>state<span class="ansi-blue-fg">.</span>epoch<span class="ansi-blue-fg">,</span> hours<span class="ansi-blue-fg">,</span> mins<span class="ansi-blue-fg">,</span> secs<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    348</span>                 <span class="ansi-green-fg">if</span> self<span class="ansi-blue-fg">.</span>should_terminate<span class="ansi-blue-fg">:</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">_run_once_on_dataset</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-intense-fg ansi-bold">    311</span>         <span class="ansi-green-fg">except</span> BaseException <span class="ansi-green-fg">as</span> e<span class="ansi-blue-fg">:</span>
-<span class="ansi-green-intense-fg ansi-bold">    312</span>             self<span class="ansi-blue-fg">.</span>_logger<span class="ansi-blue-fg">.</span>error<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;Current run is terminating due to exception: %s.&#34;</span><span class="ansi-blue-fg">,</span> str<span class="ansi-blue-fg">(</span>e<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">--&gt; 313</span><span class="ansi-red-fg">             </span>self<span class="ansi-blue-fg">.</span>_handle_exception<span class="ansi-blue-fg">(</span>e<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    314</span> 
-<span class="ansi-green-intense-fg ansi-bold">    315</span>         time_taken <span class="ansi-blue-fg">=</span> time<span class="ansi-blue-fg">.</span>time<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span> <span class="ansi-blue-fg">-</span> start_time
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">_handle_exception</span><span class="ansi-blue-fg">(self, e)</span>
-<span class="ansi-green-intense-fg ansi-bold">    322</span>             self<span class="ansi-blue-fg">.</span>_fire_event<span class="ansi-blue-fg">(</span>Events<span class="ansi-blue-fg">.</span>EXCEPTION_RAISED<span class="ansi-blue-fg">,</span> e<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    323</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-fg">--&gt; 324</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">raise</span> e
-<span class="ansi-green-intense-fg ansi-bold">    325</span> 
-<span class="ansi-green-intense-fg ansi-bold">    326</span>     <span class="ansi-green-fg">def</span> run<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> data<span class="ansi-blue-fg">,</span> max_epochs<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/engine.py</span> in <span class="ansi-cyan-fg">_run_once_on_dataset</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-intense-fg ansi-bold">    303</span>                 self<span class="ansi-blue-fg">.</span>state<span class="ansi-blue-fg">.</span>iteration <span class="ansi-blue-fg">+=</span> <span class="ansi-cyan-fg">1</span>
-<span class="ansi-green-intense-fg ansi-bold">    304</span>                 self<span class="ansi-blue-fg">.</span>_fire_event<span class="ansi-blue-fg">(</span>Events<span class="ansi-blue-fg">.</span>ITERATION_STARTED<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">--&gt; 305</span><span class="ansi-red-fg">                 </span>self<span class="ansi-blue-fg">.</span>state<span class="ansi-blue-fg">.</span>output <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>_process_function<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> batch<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    306</span>                 self<span class="ansi-blue-fg">.</span>_fire_event<span class="ansi-blue-fg">(</span>Events<span class="ansi-blue-fg">.</span>ITERATION_COMPLETED<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    307</span>                 <span class="ansi-green-fg">if</span> self<span class="ansi-blue-fg">.</span>should_terminate <span class="ansi-green-fg">or</span> self<span class="ansi-blue-fg">.</span>should_terminate_single_epoch<span class="ansi-blue-fg">:</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/ignite/engine/__init__.py</span> in <span class="ansi-cyan-fg">_update</span><span class="ansi-blue-fg">(engine, batch)</span>
-<span class="ansi-green-intense-fg ansi-bold">     48</span>         x<span class="ansi-blue-fg">,</span> y <span class="ansi-blue-fg">=</span> prepare_batch<span class="ansi-blue-fg">(</span>batch<span class="ansi-blue-fg">,</span> device<span class="ansi-blue-fg">=</span>device<span class="ansi-blue-fg">,</span> non_blocking<span class="ansi-blue-fg">=</span>non_blocking<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">     49</span>         y_pred <span class="ansi-blue-fg">=</span> model<span class="ansi-blue-fg">(</span>x<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">---&gt; 50</span><span class="ansi-red-fg">         </span>loss <span class="ansi-blue-fg">=</span> loss_fn<span class="ansi-blue-fg">(</span>y_pred<span class="ansi-blue-fg">,</span> y<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">     51</span>         loss<span class="ansi-blue-fg">.</span>backward<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">     52</span>         optimizer<span class="ansi-blue-fg">.</span>step<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/torch/nn/modules/module.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-fg">(self, *input, **kwargs)</span>
-<span class="ansi-green-intense-fg ansi-bold">    545</span>             result <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>_slow_forward<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">*</span>input<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">**</span>kwargs<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    546</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-fg">--&gt; 547</span><span class="ansi-red-fg">             </span>result <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>forward<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">*</span>input<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">**</span>kwargs<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    548</span>         <span class="ansi-green-fg">for</span> hook <span class="ansi-green-fg">in</span> self<span class="ansi-blue-fg">.</span>_forward_hooks<span class="ansi-blue-fg">.</span>values<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-intense-fg ansi-bold">    549</span>             hook_result <span class="ansi-blue-fg">=</span> hook<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> input<span class="ansi-blue-fg">,</span> result<span class="ansi-blue-fg">)</span>
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/torch/nn/modules/loss.py</span> in <span class="ansi-cyan-fg">forward</span><span class="ansi-blue-fg">(self, input, target)</span>
-<span class="ansi-green-intense-fg ansi-bold">    429</span> 
-<span class="ansi-green-intense-fg ansi-bold">    430</span>     <span class="ansi-green-fg">def</span> forward<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> input<span class="ansi-blue-fg">,</span> target<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-fg">--&gt; 431</span><span class="ansi-red-fg">         </span><span class="ansi-green-fg">return</span> F<span class="ansi-blue-fg">.</span>mse_loss<span class="ansi-blue-fg">(</span>input<span class="ansi-blue-fg">,</span> target<span class="ansi-blue-fg">,</span> reduction<span class="ansi-blue-fg">=</span>self<span class="ansi-blue-fg">.</span>reduction<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    432</span> 
-<span class="ansi-green-intense-fg ansi-bold">    433</span> 
-
-<span class="ansi-green-fg">/usr/local/lib/python3.6/dist-packages/torch/nn/functional.py</span> in <span class="ansi-cyan-fg">mse_loss</span><span class="ansi-blue-fg">(input, target, size_average, reduce, reduction)</span>
-<span class="ansi-green-intense-fg ansi-bold">   2188</span>     <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
-<span class="ansi-green-intense-fg ansi-bold">   2189</span>         expanded_input<span class="ansi-blue-fg">,</span> expanded_target <span class="ansi-blue-fg">=</span> torch<span class="ansi-blue-fg">.</span>broadcast_tensors<span class="ansi-blue-fg">(</span>input<span class="ansi-blue-fg">,</span> target<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-fg">-&gt; 2190</span><span class="ansi-red-fg">         </span>ret <span class="ansi-blue-fg">=</span> torch<span class="ansi-blue-fg">.</span>_C<span class="ansi-blue-fg">.</span>_nn<span class="ansi-blue-fg">.</span>mse_loss<span class="ansi-blue-fg">(</span>expanded_input<span class="ansi-blue-fg">,</span> expanded_target<span class="ansi-blue-fg">,</span> _Reduction<span class="ansi-blue-fg">.</span>get_enum<span class="ansi-blue-fg">(</span>reduction<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">   2191</span>     <span class="ansi-green-fg">return</span> ret
-<span class="ansi-green-intense-fg ansi-bold">   2192</span> 
-
-<span class="ansi-red-fg">KeyboardInterrupt</span>: </pre>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>25086
+</pre>
 </div>
 </div>
 
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_valid</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+    <span class="n">df_final</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s1">&#39;diagnosis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_final_wo_valid</span> <span class="o">=</span> <span class="n">df_final</span><span class="p">[</span><span class="o">~</span><span class="n">df_final</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_valid</span><span class="p">)]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[44]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_valid</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptosplus/validLabels_smallds.csv&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df_final_wo_valid</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;/storage/aptosplus/trainLabels_smallds.csv&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span>
+</pre></div>
+
+    </div>
 </div>
 </div>
 
@@ -13629,10 +13886,6 @@ var element = $('#ed2df773-8757-46ea-aa8f-d3ae340b097e');
 </body>
 
  
-
-<script type="application/vnd.jupyter.widget-state+json">
-{"version_major": 2, "version_minor": 0, "state": {"6ed6271846bd4d708a98eb7db98557a0": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "f9f786ae31864e929ff3a850abcbe5fa": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "dc0b0f2cdf4345f488f70f1eaef31e53": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "9390f7f04bb34982a47caf13fc087d65": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "cdc864ffdbed4e8494114e15351e4664": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "f39718727f6643fb90a1bd56f6c37bed": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "cad7ec70106a4023a6322f6df62bfbc4": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "96f3ad8ffd024adb9543c6b5cc84227c": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_3da4c34c1b60418fbe200e1aca815b1e", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 142, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_6f80e3998eeb4a0a83d4b2684acdce40", "_dom_classes": [], "bar_style": "", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "0896b920d56148c2944181a612816443": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "b12cb9cc22a74640ab8fef73a953cabd": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "a862d3d462744879b598f6227ac364da": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_f39718727f6643fb90a1bd56f6c37bed", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": " 62% 141/229 [03:42&lt;03:39,  2.49s/it, loss=0.0571]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_dbfe4e3162314659a465d1072463787f", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "e6924ecefdab4fe6aa640d40fa73564e": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_f9f786ae31864e929ff3a850abcbe5fa", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_96f3ad8ffd024adb9543c6b5cc84227c", "IPY_MODEL_a862d3d462744879b598f6227ac364da"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "1ac0d7839e01401fb9881f857f99e436": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "194998b5ede848518b1db30689ed9125": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "960bfbacbda24cd7b6f27fae36e15a2c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "59af416bdbe84f379c5e932b49c5019d": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "04f31f18892741c6ae6ade81dff7d480": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "b16c2cbb08b341d3a0b939fa2fab40fb": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "122ad380d57349b1ab7355bcb69697a8": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "6f80e3998eeb4a0a83d4b2684acdce40": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "a32ff5e0bc28431995a3ecd9ed4315c8": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "05f8a65a81f74158838e21bce6454a57": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_5f83528070e74246b5018dcb09051896", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:50&lt;00:00,  1.57it/s, loss=0.0821]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_960bfbacbda24cd7b6f27fae36e15a2c", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "4394dd27c8534c718cc0d82e06e33357": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "c174223bd954496eb9fe1a081b25f568": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "c28a6af31e924b5f8e89f6b4038eccbb": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "3f707dca24914164ab197181e082032d": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "dc9482ceba414349b789f0f379445374": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "68ec5e491e4746299eee74bef13113fe": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "53831d0ff60d42a6bd94df95533b4ab7": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_68ec5e491e4746299eee74bef13113fe", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:50&lt;00:00,  1.50it/s, loss=0.149]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_194998b5ede848518b1db30689ed9125", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "4d3024c64c78418caddc716a0d4acc4f": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_3f707dca24914164ab197181e082032d", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:51&lt;00:00,  1.30it/s, loss=0.0909]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_2cf5145e3dc14caf808fc7d785d48402", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "b74fccf1bdc24076a9e8c7b45ba81df5": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "348a593fe17247f39b5b0f5c095472f8": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_fbbf090186a64de682431c91631325fa", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_cdc864ffdbed4e8494114e15351e4664", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "6018007b1cfb49259dd696c07c4eabb3": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_b74fccf1bdc24076a9e8c7b45ba81df5", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_9db76cb769fc462399ec46937d969020", "IPY_MODEL_c1a20fdea33140bc8e4cef5bdd59f5f5"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "9db76cb769fc462399ec46937d969020": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_9390f7f04bb34982a47caf13fc087d65", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_6ed6271846bd4d708a98eb7db98557a0", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "6062aece0a7f4d0b8f5c3cd5ae0c041c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "661703c564e642689b72ad3ca90769a2": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "d13a85c6e38746a9ae4df5a81032dd62": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_a32ff5e0bc28431995a3ecd9ed4315c8", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_fa44097f5b1c4f4b8fbed6f39e39600f", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "b1e1e79f56534ebba93da217057bd14f": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_dc9482ceba414349b789f0f379445374", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_661703c564e642689b72ad3ca90769a2", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "6073be3f0fa24379bc0d459e5276c0eb": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "5d0d07244aac4ead81157a102396c2b3": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_04f31f18892741c6ae6ade81dff7d480", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:47&lt;00:00,  1.15it/s, loss=0.257]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_59af416bdbe84f379c5e932b49c5019d", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "3e1a1b4d223640a58fdbfcbc34bffb6c": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_1ac0d7839e01401fb9881f857f99e436", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_6073be3f0fa24379bc0d459e5276c0eb", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "fa44097f5b1c4f4b8fbed6f39e39600f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "8440fd5a058c47f2891fda84e9b7a77a": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "32dd3cb90d1f4640922fe6b0e6044f56": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_af426b73d5bf4996bfc90afeca2a9cf2", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_3e1a1b4d223640a58fdbfcbc34bffb6c", "IPY_MODEL_53831d0ff60d42a6bd94df95533b4ab7"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "d35bc8bdbaeb4cc8ada01d8e61fcd290": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "d3f69f0831f34c7fbdb4dd0a422e0bc9": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "03dd12e50d5243e0a163ee3b9877d339": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "24f71ada84444521a911c7fad0df1b58": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "5f83528070e74246b5018dcb09051896": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "3da4c34c1b60418fbe200e1aca815b1e": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "fbbf090186a64de682431c91631325fa": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "a116a2ea39574e3a97d470afd4079c56": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_e78a294560be4ec08c9eae26810c6ce6", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:48&lt;00:00,  1.31it/s, loss=0.102]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_dc0b0f2cdf4345f488f70f1eaef31e53", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "e4e2ad8f0f4c4d0184c6b3da7baf324f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "fe239fb28b0146509d35a2e7946a7873": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_b12cb9cc22a74640ab8fef73a953cabd", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_189f4be0b45a4413bb0fa437b2190710", "IPY_MODEL_2f002c7b3a904c68bdee78c1fa7c053d"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "c1a20fdea33140bc8e4cef5bdd59f5f5": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_f002368274a44e84836594a399f084ec", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:49&lt;00:00,  1.45it/s, loss=0.369]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_24f71ada84444521a911c7fad0df1b58", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "75721a0177784d20861799918e8726d5": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_8440fd5a058c47f2891fda84e9b7a77a", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_348a593fe17247f39b5b0f5c095472f8", "IPY_MODEL_5d0d07244aac4ead81157a102396c2b3"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "dbfe4e3162314659a465d1072463787f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "e78a294560be4ec08c9eae26810c6ce6": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "d358a1f279ca43268b6da70804c0cc4e": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_77de118b27a7436a85d51b01be470162", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_d13a85c6e38746a9ae4df5a81032dd62", "IPY_MODEL_4fbc1178135347c0862b378a5d466466"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "5ae529486c7e47caa7577b0c16c7b816": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_4394dd27c8534c718cc0d82e06e33357", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_b1e1e79f56534ebba93da217057bd14f", "IPY_MODEL_8467b0c134464da7be3d872f65cb26ee"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "c9500695491e4952af70ce3a209e5bbb": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_03dd12e50d5243e0a163ee3b9877d339", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_3d7568d9ba4e436bbe4a540628885d7b", "IPY_MODEL_4d3024c64c78418caddc716a0d4acc4f"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "8467b0c134464da7be3d872f65cb26ee": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_d18dd31344ce4e9e875e2bc952e401c0", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:54&lt;00:00,  1.42it/s, loss=0.604]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_6062aece0a7f4d0b8f5c3cd5ae0c041c", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "2bfbb0596b254b2d8c7757ffc5407895": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "ProgressStyleModel", "_model_module_version": "1.4.0", "_view_count": null, "bar_color": null}, "model_module_version": "1.4.0"}, "4fbc1178135347c0862b378a5d466466": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_122ad380d57349b1ab7355bcb69697a8", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:49&lt;00:00,  1.22it/s, loss=0.117]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_968f324268e74b048e2ea70d77684a98", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "3d7568d9ba4e436bbe4a540628885d7b": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_c28a6af31e924b5f8e89f6b4038eccbb", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_d35bc8bdbaeb4cc8ada01d8e61fcd290", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "20e974e044b143f0802e3d3bc02bf3da": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "af426b73d5bf4996bfc90afeca2a9cf2": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "15584afb5cec430f96d05f6bfe7edf22": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_d3f69f0831f34c7fbdb4dd0a422e0bc9", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_1e8760e740b349a9bb94177a25260938", "IPY_MODEL_a116a2ea39574e3a97d470afd4079c56"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "77de118b27a7436a85d51b01be470162": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "189f4be0b45a4413bb0fa437b2190710": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_cad7ec70106a4023a6322f6df62bfbc4", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_ceebf277978e46e7b1c8c6d6c688018d", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "f002368274a44e84836594a399f084ec": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "2f002c7b3a904c68bdee78c1fa7c053d": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "placeholder": "\u200b", "style": "IPY_MODEL_20e974e044b143f0802e3d3bc02bf3da", "_view_module": "@jupyter-widgets/controls", "_model_name": "HTMLModel", "_model_module_version": "1.4.0", "value": "100% 229/229 [05:46&lt;00:00,  1.23it/s, loss=0.192]", "_view_count": null, "description": "", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_c174223bd954496eb9fe1a081b25f568", "_dom_classes": [], "_view_module_version": "1.4.0", "_view_name": "HTMLView"}, "model_module_version": "1.4.0"}, "2cf5145e3dc14caf808fc7d785d48402": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "1e8760e740b349a9bb94177a25260938": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_2bfbb0596b254b2d8c7757ffc5407895", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_0896b920d56148c2944181a612816443", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "6a597e9fa013440ba3bcfb1543d25e66": {"model_name": "IntProgressModel", "model_module": "@jupyter-widgets/controls", "state": {"description_tooltip": null, "min": 0, "style": "IPY_MODEL_b16c2cbb08b341d3a0b939fa2fab40fb", "_view_module": "@jupyter-widgets/controls", "_model_name": "IntProgressModel", "_model_module_version": "1.4.0", "value": 229, "_view_count": null, "max": 229, "description": "", "orientation": "horizontal", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_a6ea325ec8c64bc8853c3b7e5a99f9f4", "_dom_classes": [], "bar_style": "success", "_view_module_version": "1.4.0", "_view_name": "ProgressView"}, "model_module_version": "1.4.0"}, "f48d782b72b34b069e61f7f631c2c23a": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/controls", "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_e4e2ad8f0f4c4d0184c6b3da7baf324f", "_dom_classes": [], "box_style": "", "_view_module_version": "1.4.0", "_view_name": "HBoxView", "children": ["IPY_MODEL_6a597e9fa013440ba3bcfb1543d25e66", "IPY_MODEL_05f8a65a81f74158838e21bce6454a57"], "_model_name": "HBoxModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}, "968f324268e74b048e2ea70d77684a98": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "a6ea325ec8c64bc8853c3b7e5a99f9f4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "ceebf277978e46e7b1c8c6d6c688018d": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "state": {"visibility": null, "top": null, "_view_module_version": "1.1.0", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.1.0", "justify_content": null, "_view_count": null, "flex_flow": null, "border": null, "grid_auto_rows": null, "grid_auto_columns": null, "max_width": null, "display": null, "overflow_x": null, "align_self": null, "align_content": null, "grid_auto_flow": null, "padding": null, "height": null, "min_height": null, "width": null, "overflow": null, "grid_column": null, "_model_name": "LayoutModel", "grid_template_areas": null, "order": null, "grid_template_rows": null, "min_width": null, "max_height": null, "align_items": null, "_model_module": "@jupyter-widgets/base", "overflow_y": null, "flex": null, "grid_template_columns": null, "grid_gap": null, "_view_name": "LayoutView", "grid_area": null, "margin": null, "bottom": null, "left": null, "grid_row": null, "right": null}, "model_module_version": "1.1.0"}, "d18dd31344ce4e9e875e2bc952e401c0": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "state": {"_view_module": "@jupyter-widgets/base", "_model_module": "@jupyter-widgets/controls", "_view_module_version": "1.1.0", "description_width": "", "_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "_model_module_version": "1.4.0", "_view_count": null}, "model_module_version": "1.4.0"}}}
-</script>
 
 
 </html>
